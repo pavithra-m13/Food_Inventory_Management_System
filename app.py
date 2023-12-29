@@ -1,135 +1,10 @@
-# from flask import Flask, render_template, request, redirect, url_for,flash
-# import sqlite3
-
-# app = Flask(__name__)
-# app.secret_key = 'mithra11'
-
-# # Create a SQLite3 database or connect to an existing one
-# conn = sqlite3.connect('food_inventory.db')
-# cursor = conn.cursor()
-
-# # Create a table to store food inventory
-# cursor.execute('''
-#     CREATE TABLE IF NOT EXISTS inventory (
-#         id INTEGER PRIMARY KEY AUTOINCREMENT,
-#         item_name TEXT NOT NULL,
-#         quantity INTEGER NOT NULL,
-#         expiration_date DATE NOT NULL
-#     )
-# ''')
-# conn.commit()
-# conn.close()
-
-# conn = sqlite3.connect('user_registration.db')
-# cursor = conn.cursor()
-
-# # Create a table to store user registration information
-# cursor.execute('''
-#     CREATE TABLE IF NOT EXISTS users (
-#         id INTEGER PRIMARY KEY AUTOINCREMENT,
-#         name TEXT NOT NULL,
-#         email TEXT NOT NULL,
-#         password TEXT NOT NULL
-#     )
-# ''')
-# conn.commit()
-# conn.close()
-
-
-# @app.route('/',methods=['GET'])
-# def index():
-#     # Connect to the database and fetch the inventor
-#     # conn = sqlite3.connect('food_inventory.db')
-#     # cursor = conn.cursor()
-#     # cursor.execute('SELECT * FROM inventory')
-#     # inventory = cursor.fetchall()
-#     # conn.close()
-#     return render_template('index.html')
-
-
-# @app.route('/login', methods=['GET', 'POST'])
-# def login():
-#     if request.method == 'POST':
-#         email = request.form['email']
-#         password = request.form['password']
-
-#         # Check if the provided email and password match a user in the database
-#         conn = sqlite3.connect('user_registration.db')
-#         cursor = conn.cursor()
-#         cursor.execute('SELECT * FROM users WHERE email = ? AND password = ?', (email, password))
-#         user = cursor.fetchone()
-
-#         if user:
-#             flash('Login successful.', 'success')
-#             return redirect(url_for('login'))
-#         else:
-#             flash('Login failed. Please check your email and password.', 'danger')
-
-#     return render_template('login.html')
-
-
-# @app.route('/register', methods=['GET', 'POST'])
-# def register():
-#     if request.method == 'POST':
-#         name = request.form['id']
-#         email = request.form['email']
-#         password = request.form['pwd']
-#         confirm_password = request.form['PWD']
-
-#         # Check if the password and confirm password match
-#         if password != confirm_password:
-#             flash('Password and Confirm Password do not match.', 'danger')
-
-#         else:
-#             # Insert the user into the database (you should hash the password in a real application)
-#             conn = sqlite3.connect('user_registration.db')
-#             cursor = conn.cursor()
-#             cursor.execute('INSERT INTO users (name, email, password) VALUES (?, ?, ?)',
-#                            (name, email, password))
-#             conn.commit()
-#             conn.close()
-
-#             flash('Registration successful. You can now log in.', 'success')
-#             return redirect(url_for('login'))
-
-#     return render_template('register.html')
-
-# @app.route('/add_item', methods=['GET', 'POST'])
-# def add_item():
-#     if request.method == 'POST':
-#         item_name = request.form['item_name']
-#         quantity = request.form['quantity']
-#         expiration_date = request.form['expiration_date']
-
-#         # Insert the new item into the database
-#         conn = sqlite3.connect('food_inventory.db')
-#         cursor = conn.cursor()
-#         cursor.execute('INSERT INTO inventory (item_name, quantity, expiration_date) VALUES (?, ?, ?)',
-#                        (item_name, quantity, expiration_date))
-#         conn.commit()
-#         conn.close()
-#         return redirect(url_for('add_item'))
-#     else:
-#         # Handle the GET request to display the inventory
-#         conn = sqlite3.connect('food_inventory.db')
-#         cursor = conn.cursor()
-#         cursor.execute('SELECT * FROM inventory')
-#         inventory = cursor.fetchall()
-#         conn.close()
-#         return render_template('add_item.html', inventory=inventory)
-
-
-# if __name__ == '__main__':
-#     app.run(debug=True)
-
-
 from flask import Flask, render_template, request, redirect, url_for,flash,session,jsonify
 import sqlite3
 from flask_sqlalchemy import SQLAlchemy
 import warnings
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///food_inventory.sqlite3'  #
-app.secret_key = 'mithra11'
+app.secret_key = 'SECRET_KEY'
 conn = sqlite3.connect('user_registration.db')
 cursor = conn.cursor()
 
@@ -166,12 +41,6 @@ conn.close()
 
 @app.route('/',methods=['GET'])
 def index():
-    # Connect to the database and fetch the inventor
-    # conn = sqlite3.connect('food_inventory.db')
-    # cursor = conn.cursor()
-    # cursor.execute('SELECT * FROM inventory')
-    # inventory = cursor.fetchall()
-    # conn.close()
     return render_template('index.html')
 
 
@@ -249,27 +118,6 @@ def products():
     cursor.execute('SELECT * FROM inventory WHERE user_id=?', (user_id,))
     inventory = cursor.fetchall()
     conn.close()
-
-
-    # Calculate date-related statistics
-    # today = datetime.now().date()
-    # expiring_soon = 0
-    # total_days_remaining = 0
-
-    # for item in inventory:
-    #     expiration_date = datetime.strptime(item[3], '%Y-%m-%d').date()
-    #     days_until_expiration = (expiration_date - today).days
-
-    #     if days_until_expiration >= 0:
-    #         expiring_soon += 1
-
-    #     total_days_remaining += days_until_expiration
-
-    # if len(inventory) > 0:
-    #     average_days_remaining = total_days_remaining / len(inventory)
-    # else:
-    #     average_days_remaining = 0
-
     return render_template('products.html', inventory=inventory)
 
 
@@ -356,20 +204,12 @@ def vegetable_inventory():
         item_name = request.form['name']
         quantity = request.form['quantity']
         expiration_date = request.form['expiration_date']
-
-        # Insert the new item into the database
-        # conn = sqlite3.connect('food_inventory.db')
-        # cursor = conn.cursor()
         with sqlite3.connect('food_inventory.db') as conn:
             cursor = conn.cursor()
             cursor.execute('INSERT INTO inventory (user_id,item_name, quantity, expiration_date) VALUES (?,?, ?, ?)',
                        (user_id,item_name, quantity, expiration_date))
             conn.commit()
             conn.close()
-        # cursor.execute('INSERT INTO inventory (item_name, quantity, expiration_date) VALUES (?, ?, ?)',
-        #                (item_name, quantity, expiration_date))
-        # conn.commit()
-        # conn.close()
         return redirect(url_for('food_inventory'))
     return render_template('vegetable_inventory.html')
 
